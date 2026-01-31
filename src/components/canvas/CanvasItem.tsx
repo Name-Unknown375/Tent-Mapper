@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { Group, Rect, Circle, Text } from 'react-konva';
 import Konva from 'konva';
 import type { CanvasItem as CanvasItemType } from '../../types';
-import { ITEM_DEFINITIONS, PIXELS_PER_FOOT } from '../../types';
+import { ITEM_DEFINITIONS, PIXELS_PER_FOOT, CANVAS_WIDTH_PX, CANVAS_HEIGHT_PX } from '../../types';
 import { useAppStore } from '../../stores/useAppStore';
 
 interface CanvasItemProps {
@@ -30,6 +30,34 @@ export const CanvasItemComponent: React.FC<CanvasItemProps> = ({
     item.tilesDeep !== undefined
       ? item.tilesDeep * 4 * PIXELS_PER_FOOT
       : heightPx;
+
+  // Calculate the item's half-size for boundary calculations
+  const getItemHalfSize = () => {
+    if (definition.isRound) {
+      const radius = (definition.diameterFt! / 2) * PIXELS_PER_FOOT;
+      return { halfWidth: radius, halfHeight: radius };
+    }
+    if (definition.category === 'dancefloor') {
+      return { halfWidth: actualWidthPx / 2, halfHeight: actualHeightPx / 2 };
+    }
+    return { halfWidth: widthPx / 2, halfHeight: heightPx / 2 };
+  };
+
+  // Constrain dragging to canvas bounds
+  const dragBoundFunc = (pos: { x: number; y: number }) => {
+    const { halfWidth, halfHeight } = getItemHalfSize();
+
+    // Clamp position to keep item fully within canvas
+    const newX = Math.max(halfWidth, Math.min(CANVAS_WIDTH_PX - halfWidth, pos.x));
+    const newY = Math.max(halfHeight, Math.min(CANVAS_HEIGHT_PX - halfHeight, pos.y));
+
+    return { x: newX, y: newY };
+  };
+
+  const handleDragStart = (e: Konva.KonvaEventObject<DragEvent>) => {
+    // Stop the event from bubbling to the stage (prevents stage panning)
+    e.cancelBubble = true;
+  };
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
     updateItem(item.id, {
@@ -226,6 +254,8 @@ export const CanvasItemComponent: React.FC<CanvasItemProps> = ({
       y={item.position.y}
       rotation={item.rotation}
       draggable={!item.locked}
+      dragBoundFunc={dragBoundFunc}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onTransformEnd={handleTransformEnd}
       onClick={handleClick}

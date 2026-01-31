@@ -126,16 +126,27 @@ export const MainCanvas: React.FC<MainCanvasProps> = ({ containerRef }) => {
         }}
       >
         <Layer>
-          {/* Background */}
+          {/* Grass Background */}
           <Rect
             name="background"
             x={0}
             y={0}
             width={CANVAS_WIDTH_PX}
             height={CANVAS_HEIGHT_PX}
-            fill="#FEFAF6"
+            fill="#4a7c59"
             stroke="#284F3F"
-            strokeWidth={2}
+            strokeWidth={4}
+          />
+          {/* Grass texture overlay - subtle pattern */}
+          <Rect
+            name="grass-texture"
+            x={0}
+            y={0}
+            width={CANVAS_WIDTH_PX}
+            height={CANVAS_HEIGHT_PX}
+            fillPatternImage={undefined}
+            fill="transparent"
+            listening={false}
           />
 
           {/* Grid */}
