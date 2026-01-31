@@ -218,7 +218,7 @@ export const useAppStore = create<AppStore>()(
         const item = get().items.find((i) => i.id === tableId);
         if (item) {
           const def = ITEM_DEFINITIONS[item.type];
-          const maxChairs = def.seatingCapacity || 0;
+          const maxChairs = def.maxSeatingCapacity || def.seatingCapacity || 0;
           get().updateItem(tableId, {
             chairCount: Math.min(Math.max(0, count), maxChairs),
           });

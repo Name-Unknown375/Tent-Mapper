@@ -75,14 +75,16 @@ export const Wizard: React.FC = () => {
   const TENT_OPTIONS: { value: ItemType; label: string }[] = [
     { value: 'tent-20x20', label: '20x20 Tent' },
     { value: 'tent-20x30', label: '20x30 Tent' },
+    { value: 'tent-20x60', label: '20x60 Tent (2x 20x30)' },
+    { value: 'tent-30x40', label: '30x40 Marquee Tent' },
     { value: 'tent-10x10', label: '10x10 Popup' },
     { value: 'tent-10x20', label: '10x20 Popup' },
   ];
 
   const TABLE_OPTIONS: { value: ItemType; label: string }[] = [
-    { value: 'table-round-5ft', label: '5ft Round (8 seats)' },
-    { value: 'table-rect-6ft', label: '6ft Rectangular (6 seats)' },
-    { value: 'table-rect-8ft', label: '8ft Banquet (8 seats)' },
+    { value: 'table-round-5ft', label: '5ft Round (8-10 seats)' },
+    { value: 'table-rect-6ft', label: '6ft Rectangular (6-8 seats)' },
+    { value: 'table-rect-8ft', label: '8ft Banquet (8-10 seats)' },
   ];
 
   const CHAIR_OPTIONS: { value: ChairType; label: string }[] = [

@@ -14,6 +14,7 @@ interface MainCanvasProps {
 export const MainCanvas: React.FC<MainCanvasProps> = ({ containerRef }) => {
   const stageRef = useRef<Konva.Stage>(null);
   const [stageSize, setStageSize] = useState({ width: 800, height: 600 });
+  const [isDraggingFromSidebar, setIsDraggingFromSidebar] = useState(false);
 
   const {
     items,
@@ -72,7 +73,7 @@ export const MainCanvas: React.FC<MainCanvasProps> = ({ containerRef }) => {
   // Handle stage click (deselect)
   const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
     // Only deselect if clicking on the stage background
-    if (e.target === e.target.getStage() || e.target.name() === 'background') {
+    if (e.target === e.target.getStage() || e.target.name() === 'background' || e.target.name() === 'grass-texture') {
       clearSelection();
     }
   };
@@ -80,6 +81,9 @@ export const MainCanvas: React.FC<MainCanvasProps> = ({ containerRef }) => {
   // Handle drag and drop from sidebar
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingFromSidebar(false);
+
     const itemType = e.dataTransfer.getData('itemType') as ItemType;
     if (!itemType) return;
 
@@ -98,6 +102,44 @@ export const MainCanvas: React.FC<MainCanvasProps> = ({ containerRef }) => {
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingFromSidebar(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    // Only set false if leaving the container entirely
+    if (!containerRef.current?.contains(e.relatedTarget as Node)) {
+      setIsDraggingFromSidebar(false);
+    }
+  };
+
+  // Only allow stage dragging when not dragging from sidebar
+  const handleStageDragStart = (e: Konva.KonvaEventObject<DragEvent>) => {
+    // Prevent stage drag if we're dragging from sidebar
+    if (isDraggingFromSidebar) {
+      e.target.stopDrag();
+      return;
+    }
+    // Only allow dragging if clicking on background
+    const target = e.target;
+    if (target !== stageRef.current && target.name() !== 'background' && target.name() !== 'grass-texture') {
+      e.target.stopDrag();
+    }
+  };
+
+  const handleStageDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
+    // Only update offset if this was a valid stage drag
+    if (e.target === stageRef.current) {
+      setCanvasOffset({
+        x: e.target.x(),
+        y: e.target.y(),
+      });
+    }
   };
 
   return (
@@ -105,6 +147,8 @@ export const MainCanvas: React.FC<MainCanvasProps> = ({ containerRef }) => {
       className="w-full h-full overflow-hidden bg-brand-cream canvas-container"
       onDrop={handleDrop}
       onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
     >
       <Stage
         ref={stageRef}
@@ -117,13 +161,9 @@ export const MainCanvas: React.FC<MainCanvasProps> = ({ containerRef }) => {
         onWheel={handleWheel}
         onClick={handleStageClick}
         onTap={handleStageClick}
-        draggable
-        onDragEnd={(e) => {
-          setCanvasOffset({
-            x: e.target.x(),
-            y: e.target.y(),
-          });
-        }}
+        draggable={!isDraggingFromSidebar}
+        onDragStart={handleStageDragStart}
+        onDragEnd={handleStageDragEnd}
       >
         <Layer>
           {/* Grass Background */}
@@ -144,7 +184,6 @@ export const MainCanvas: React.FC<MainCanvasProps> = ({ containerRef }) => {
             y={0}
             width={CANVAS_WIDTH_PX}
             height={CANVAS_HEIGHT_PX}
-            fillPatternImage={undefined}
             fill="transparent"
             listening={false}
           />

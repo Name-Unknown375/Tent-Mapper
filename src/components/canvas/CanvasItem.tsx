@@ -15,7 +15,7 @@ export const CanvasItemComponent: React.FC<CanvasItemProps> = ({
   isSelected,
 }) => {
   const groupRef = useRef<Konva.Group>(null);
-  const { updateItem, selectItem, autoArrangeChairs } = useAppStore();
+  const { updateItem, selectItem } = useAppStore();
   const definition = ITEM_DEFINITIONS[item.type];
 
   const widthPx = definition.widthFt * PIXELS_PER_FOOT;
@@ -35,12 +35,16 @@ export const CanvasItemComponent: React.FC<CanvasItemProps> = ({
   const getItemHalfSize = () => {
     if (definition.isRound) {
       const radius = (definition.diameterFt! / 2) * PIXELS_PER_FOOT;
-      return { halfWidth: radius, halfHeight: radius };
+      // Add space for chairs around the table
+      const chairOffset = item.chairCount ? 25 : 0;
+      return { halfWidth: radius + chairOffset, halfHeight: radius + chairOffset };
     }
     if (definition.category === 'dancefloor') {
       return { halfWidth: actualWidthPx / 2, halfHeight: actualHeightPx / 2 };
     }
-    return { halfWidth: widthPx / 2, halfHeight: heightPx / 2 };
+    // Add space for chairs around rectangular tables
+    const chairOffset = item.chairCount && definition.category === 'table' ? 25 : 0;
+    return { halfWidth: widthPx / 2 + chairOffset, halfHeight: heightPx / 2 + chairOffset };
   };
 
   // Constrain dragging to canvas bounds
@@ -63,10 +67,6 @@ export const CanvasItemComponent: React.FC<CanvasItemProps> = ({
     updateItem(item.id, {
       position: { x: e.target.x(), y: e.target.y() },
     });
-    // Re-arrange chairs if this is a table
-    if (item.chairType && item.chairCount) {
-      autoArrangeChairs(item.id);
-    }
   };
 
   const handleTransformEnd = () => {
@@ -84,17 +84,189 @@ export const CanvasItemComponent: React.FC<CanvasItemProps> = ({
     selectItem(item.id);
   };
 
+  // Render chairs around a round table
+  const renderRoundTableChairs = () => {
+    if (!item.chairCount || item.chairCount === 0) return null;
+
+    const chairs: React.ReactNode[] = [];
+    const tableRadius = (definition.diameterFt! / 2) * PIXELS_PER_FOOT;
+    const chairRadius = 8; // Small circles for chairs
+    const chairDistance = tableRadius + 18; // Distance from center to chair
+
+    for (let i = 0; i < item.chairCount; i++) {
+      const angle = (2 * Math.PI * i) / item.chairCount - Math.PI / 2;
+      const x = chairDistance * Math.cos(angle);
+      const y = chairDistance * Math.sin(angle);
+
+      chairs.push(
+        <Group key={`chair-${i}`}>
+          {/* Chair circle */}
+          <Circle
+            x={x}
+            y={y}
+            radius={chairRadius}
+            fill="#FFFFFF"
+            stroke="#284F3F"
+            strokeWidth={1.5}
+          />
+          {/* Chair number */}
+          <Text
+            x={x - 4}
+            y={y - 4}
+            text={String(i + 1)}
+            fontSize={8}
+            fill="#284F3F"
+            fontStyle="bold"
+          />
+        </Group>
+      );
+    }
+
+    return <Group>{chairs}</Group>;
+  };
+
+  // Render chairs around a rectangular table
+  const renderRectTableChairs = () => {
+    if (!item.chairCount || item.chairCount === 0) return null;
+
+    const chairs: React.ReactNode[] = [];
+    const chairRadius = 8;
+    const chairOffset = 15; // Distance from table edge
+
+    const tableW = widthPx;
+    const tableH = heightPx;
+
+    // Distribute chairs: prioritize long sides (top and bottom)
+    // For 6ft table (6-8 chairs): 3 on each long side
+    // For 8ft table (8-10 chairs): 3-4 on each long side, optionally 1 on each end
+
+    const totalChairs = item.chairCount;
+    let chairIndex = 0;
+
+    // Calculate how many chairs on each side
+    // Long sides get more chairs
+    const chairsPerLongSide = Math.ceil(totalChairs / 2 / 2) + 1; // e.g., 3 for 6 chairs total
+    const remainingAfterLongSides = totalChairs - (chairsPerLongSide * 2);
+    const chairsOnEnds = Math.max(0, remainingAfterLongSides);
+
+    // Top side (3 chairs for 6ft, up to 4 for 8ft)
+    const topChairs = Math.min(chairsPerLongSide, Math.ceil((totalChairs - chairsOnEnds) / 2));
+    const spacing = tableW / (topChairs + 1);
+
+    for (let i = 0; i < topChairs && chairIndex < totalChairs; i++) {
+      const x = -tableW / 2 + spacing * (i + 1);
+      const y = -tableH / 2 - chairOffset;
+      chairs.push(
+        <Group key={`chair-${chairIndex}`}>
+          <Circle x={x} y={y} radius={chairRadius} fill="#FFFFFF" stroke="#284F3F" strokeWidth={1.5} />
+          <Text x={x - 4} y={y - 4} text={String(chairIndex + 1)} fontSize={8} fill="#284F3F" fontStyle="bold" />
+        </Group>
+      );
+      chairIndex++;
+    }
+
+    // Bottom side
+    const bottomChairs = Math.min(chairsPerLongSide, totalChairs - chairIndex - Math.floor(chairsOnEnds));
+    for (let i = 0; i < bottomChairs && chairIndex < totalChairs; i++) {
+      const x = -tableW / 2 + spacing * (i + 1);
+      const y = tableH / 2 + chairOffset;
+      chairs.push(
+        <Group key={`chair-${chairIndex}`}>
+          <Circle x={x} y={y} radius={chairRadius} fill="#FFFFFF" stroke="#284F3F" strokeWidth={1.5} />
+          <Text x={x - 4} y={y - 4} text={String(chairIndex + 1)} fontSize={8} fill="#284F3F" fontStyle="bold" />
+        </Group>
+      );
+      chairIndex++;
+    }
+
+    // Left end (if needed)
+    if (chairIndex < totalChairs) {
+      const x = -tableW / 2 - chairOffset;
+      const y = 0;
+      chairs.push(
+        <Group key={`chair-${chairIndex}`}>
+          <Circle x={x} y={y} radius={chairRadius} fill="#FFFFFF" stroke="#284F3F" strokeWidth={1.5} />
+          <Text x={x - 4} y={y - 4} text={String(chairIndex + 1)} fontSize={8} fill="#284F3F" fontStyle="bold" />
+        </Group>
+      );
+      chairIndex++;
+    }
+
+    // Right end (if needed)
+    if (chairIndex < totalChairs) {
+      const x = tableW / 2 + chairOffset;
+      const y = 0;
+      chairs.push(
+        <Group key={`chair-${chairIndex}`}>
+          <Circle x={x} y={y} radius={chairRadius} fill="#FFFFFF" stroke="#284F3F" strokeWidth={1.5} />
+          <Text x={x - 4} y={y - 4} text={String(chairIndex + 1)} fontSize={8} fill="#284F3F" fontStyle="bold" />
+        </Group>
+      );
+      chairIndex++;
+    }
+
+    return <Group>{chairs}</Group>;
+  };
+
   // Render different shapes based on item type
   const renderShape = () => {
-    if (definition.isRound) {
+    // Round tables
+    if (definition.isRound && definition.category === 'table') {
       const radius = (definition.diameterFt! / 2) * PIXELS_PER_FOOT;
       return (
-        <Circle
-          radius={radius}
-          fill={definition.fillColor}
-          stroke={isSelected ? '#EBC0CF' : definition.strokeColor}
-          strokeWidth={isSelected ? 3 : 2}
-        />
+        <Group>
+          {/* Chairs around the table */}
+          {renderRoundTableChairs()}
+          {/* Table */}
+          <Circle
+            radius={radius}
+            fill={definition.fillColor}
+            stroke={isSelected ? '#EBC0CF' : definition.strokeColor}
+            strokeWidth={isSelected ? 3 : 2}
+          />
+          {/* Table number in center */}
+          {item.chairCount && item.chairCount > 0 && (
+            <Text
+              x={-8}
+              y={-6}
+              text={String(item.chairCount)}
+              fontSize={14}
+              fill={definition.strokeColor}
+              fontStyle="bold"
+            />
+          )}
+        </Group>
+      );
+    }
+
+    // Rectangular tables
+    if (definition.category === 'table') {
+      return (
+        <Group>
+          {/* Chairs around the table */}
+          {renderRectTableChairs()}
+          {/* Table */}
+          <Rect
+            x={-widthPx / 2}
+            y={-heightPx / 2}
+            width={widthPx}
+            height={heightPx}
+            fill={definition.fillColor}
+            stroke={isSelected ? '#EBC0CF' : definition.strokeColor}
+            strokeWidth={isSelected ? 3 : 2}
+          />
+          {/* Table number in center */}
+          {item.chairCount && item.chairCount > 0 && (
+            <Text
+              x={-8}
+              y={-6}
+              text={String(item.chairCount)}
+              fontSize={14}
+              fill={definition.strokeColor}
+              fontStyle="bold"
+            />
+          )}
+        </Group>
       );
     }
 
@@ -149,6 +321,9 @@ export const CanvasItemComponent: React.FC<CanvasItemProps> = ({
 
     // Special rendering for tents (show tent outline with poles)
     if (definition.category === 'tent') {
+      // For 20x60 tent, show the dividing line
+      const is20x60 = item.type === 'tent-20x60';
+
       return (
         <Group>
           <Rect
@@ -161,6 +336,17 @@ export const CanvasItemComponent: React.FC<CanvasItemProps> = ({
             strokeWidth={isSelected ? 3 : 2}
             dash={[10, 5]}
           />
+          {/* Dividing line for 20x60 (shows it's made of 2x 20x30) */}
+          {is20x60 && (
+            <Rect
+              x={-widthPx / 2}
+              y={0}
+              width={widthPx}
+              height={1}
+              fill={definition.strokeColor}
+              opacity={0.5}
+            />
+          )}
           {/* Corner markers */}
           {[
             [-widthPx / 2 + 5, -heightPx / 2 + 5],
@@ -173,7 +359,24 @@ export const CanvasItemComponent: React.FC<CanvasItemProps> = ({
               x={x}
               y={y}
               radius={4}
-              fill={definition.strokeColor}
+              fill="#FFFFFF"
+              stroke={definition.strokeColor}
+              strokeWidth={1}
+            />
+          ))}
+          {/* Middle poles for 20x60 */}
+          {is20x60 && [
+            [-widthPx / 2 + 5, 0],
+            [widthPx / 2 - 5, 0],
+          ].map(([x, y], i) => (
+            <Circle
+              key={`mid-${i}`}
+              x={x}
+              y={y}
+              radius={4}
+              fill="#FFFFFF"
+              stroke={definition.strokeColor}
+              strokeWidth={1}
             />
           ))}
           {/* Label */}
@@ -189,7 +392,7 @@ export const CanvasItemComponent: React.FC<CanvasItemProps> = ({
       );
     }
 
-    // Default rectangle rendering
+    // Default rectangle rendering (equipment, chairs)
     return (
       <Rect
         x={-widthPx / 2}
@@ -223,29 +426,46 @@ export const CanvasItemComponent: React.FC<CanvasItemProps> = ({
     );
   };
 
-  // Show chair count for tables
-  const renderChairCount = () => {
-    if (!item.chairCount) return null;
+  // Calculate selection box size including chairs
+  const getSelectionBoxSize = () => {
+    if (definition.category === 'table' && item.chairCount) {
+      const chairOffset = 30;
+      if (definition.isRound) {
+        const radius = (definition.diameterFt! / 2) * PIXELS_PER_FOOT;
+        return {
+          x: -(radius + chairOffset),
+          y: -(radius + chairOffset),
+          width: (radius + chairOffset) * 2,
+          height: (radius + chairOffset) * 2,
+        };
+      }
+      return {
+        x: -widthPx / 2 - chairOffset,
+        y: -heightPx / 2 - chairOffset,
+        width: widthPx + chairOffset * 2,
+        height: heightPx + chairOffset * 2,
+      };
+    }
 
-    return (
-      <Group>
-        <Circle
-          x={widthPx / 2 - 5}
-          y={-heightPx / 2 + 5}
-          radius={12}
-          fill="#284F3F"
-        />
-        <Text
-          x={widthPx / 2 - 5 - 6}
-          y={-heightPx / 2 + 5 - 5}
-          text={String(item.chairCount)}
-          fontSize={10}
-          fill="#FEFAF6"
-          fontStyle="bold"
-        />
-      </Group>
-    );
+    if (definition.isRound) {
+      const radius = (definition.diameterFt! / 2) * PIXELS_PER_FOOT;
+      return {
+        x: -radius - 5,
+        y: -radius - 5,
+        width: radius * 2 + 10,
+        height: radius * 2 + 10,
+      };
+    }
+
+    return {
+      x: -widthPx / 2 - 5,
+      y: -heightPx / 2 - 5,
+      width: widthPx + 10,
+      height: heightPx + 10,
+    };
   };
+
+  const selectionBox = getSelectionBoxSize();
 
   return (
     <Group
@@ -263,14 +483,13 @@ export const CanvasItemComponent: React.FC<CanvasItemProps> = ({
     >
       {renderShape()}
       {renderLabel()}
-      {renderChairCount()}
       {/* Selection indicator */}
       {isSelected && (
         <Rect
-          x={definition.isRound ? -(definition.diameterFt! / 2) * PIXELS_PER_FOOT - 5 : -widthPx / 2 - 5}
-          y={definition.isRound ? -(definition.diameterFt! / 2) * PIXELS_PER_FOOT - 5 : -heightPx / 2 - 5}
-          width={definition.isRound ? definition.diameterFt! * PIXELS_PER_FOOT + 10 : widthPx + 10}
-          height={definition.isRound ? definition.diameterFt! * PIXELS_PER_FOOT + 10 : heightPx + 10}
+          x={selectionBox.x}
+          y={selectionBox.y}
+          width={selectionBox.width}
+          height={selectionBox.height}
           stroke="#EBC0CF"
           strokeWidth={2}
           dash={[5, 5]}

@@ -3,6 +3,8 @@
 export type ItemType =
   | 'tent-20x20'
   | 'tent-20x30'
+  | 'tent-20x60'
+  | 'tent-30x40'
   | 'tent-10x10'
   | 'tent-10x20'
   | 'table-round-5ft'
@@ -59,8 +61,10 @@ export interface ItemDefinition {
   // For round items, use diameter
   isRound?: boolean;
   diameterFt?: number;
-  // Seating capacity (for tables)
+  // Seating capacity (for tables) - recommended
   seatingCapacity?: number;
+  // Max seating capacity (for tables)
+  maxSeatingCapacity?: number;
   // Color for rendering
   fillColor: string;
   strokeColor: string;
@@ -159,6 +163,26 @@ export const ITEM_DEFINITIONS: Record<ItemType, ItemDefinition> = {
     strokeColor: '#284F3F',
     description: '20ft x 30ft frame tent - fits up to 60 guests seated',
   },
+  'tent-20x60': {
+    type: 'tent-20x60',
+    name: '20x60 Tent',
+    category: 'tent',
+    widthFt: 20,
+    heightFt: 60,
+    fillColor: 'rgba(235, 192, 207, 0.3)',
+    strokeColor: '#284F3F',
+    description: '20ft x 60ft frame tent (2x 20x30) - fits up to 120 guests seated',
+  },
+  'tent-30x40': {
+    type: 'tent-30x40',
+    name: '30x40 Marquee',
+    category: 'tent',
+    widthFt: 30,
+    heightFt: 40,
+    fillColor: 'rgba(235, 192, 207, 0.3)',
+    strokeColor: '#284F3F',
+    description: '30ft x 40ft marquee tent - fits up to 120 guests seated',
+  },
   'tent-10x10': {
     type: 'tent-10x10',
     name: '10x10 Popup',
@@ -177,7 +201,7 @@ export const ITEM_DEFINITIONS: Record<ItemType, ItemDefinition> = {
     heightFt: 20,
     fillColor: 'rgba(235, 192, 207, 0.3)',
     strokeColor: '#284F3F',
-    description: '10ft x 10ft popup tent - great for buffet or bar area',
+    description: '10ft x 20ft popup tent - great for buffet or bar area',
   },
 
   // Tables
@@ -190,9 +214,10 @@ export const ITEM_DEFINITIONS: Record<ItemType, ItemDefinition> = {
     isRound: true,
     diameterFt: 5,
     seatingCapacity: 8,
+    maxSeatingCapacity: 10,
     fillColor: '#FEFAF6',
     strokeColor: '#284F3F',
-    description: '5ft round table - seats up to 8 guests',
+    description: '5ft round table - seats 8 (max 10)',
   },
   'table-rect-6ft': {
     type: 'table-rect-6ft',
@@ -201,9 +226,10 @@ export const ITEM_DEFINITIONS: Record<ItemType, ItemDefinition> = {
     widthFt: 6,
     heightFt: 2.5,
     seatingCapacity: 6,
+    maxSeatingCapacity: 8,
     fillColor: '#FEFAF6',
     strokeColor: '#284F3F',
-    description: '6ft plastic rectangular table - seats up to 6 guests',
+    description: '6ft plastic rectangular table - seats 6 (max 8)',
   },
   'table-rect-8ft': {
     type: 'table-rect-8ft',
@@ -212,9 +238,10 @@ export const ITEM_DEFINITIONS: Record<ItemType, ItemDefinition> = {
     widthFt: 8,
     heightFt: 2.5,
     seatingCapacity: 8,
+    maxSeatingCapacity: 10,
     fillColor: '#8B4513',
     strokeColor: '#284F3F',
-    description: '8ft wooden banquet table - seats up to 8 guests',
+    description: '8ft wooden banquet table - seats 8 (max 10)',
   },
 
   // Chairs

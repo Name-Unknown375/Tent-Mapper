@@ -219,7 +219,15 @@ export const EmbedPage: React.FC = () => {
 
       {/* Powered by footer */}
       <div className="h-8 bg-brand-green/10 flex items-center justify-center text-xs text-brand-green/60">
-        Powered by Forever Party Rentals
+        Powered by{' '}
+        <a
+          href="https://www.foreverpartyrentals.com/"
+          target="_blank"
+          rel="noopener"
+          className="text-brand-green hover:text-brand-pink underline ml-1"
+        >
+          Forever Party Rentals
+        </a>
       </div>
     </div>
   );
