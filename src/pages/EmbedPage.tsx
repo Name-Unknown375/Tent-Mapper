@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import Konva from 'konva';
 import { useAppStore } from '../stores/useAppStore';
 import { MainCanvas } from '../components/canvas';
+import { Canvas3D } from '../components/canvas/Canvas3D';
 import { Sidebar } from '../components/layout/Sidebar';
 import { Wizard } from '../components/wizard';
 import { exportToImage, exportToPDF } from '../utils/export';
@@ -17,6 +18,8 @@ import {
   Maximize,
   Grid3X3,
   Wand2,
+  Box,
+  Square,
 } from 'lucide-react';
 
 export const EmbedPage: React.FC = () => {
@@ -43,6 +46,8 @@ export const EmbedPage: React.FC = () => {
     selectedItemId,
     removeItem,
     resetWizard,
+    viewMode,
+    setViewMode,
   } = useAppStore();
 
   // Set embed mode on mount
@@ -164,6 +169,30 @@ export const EmbedPage: React.FC = () => {
             </Button>
           </Tooltip>
 
+          {/* 2D/3D View Toggle */}
+          <div className="flex items-center bg-brand-cream/10 rounded-lg p-0.5">
+            <Tooltip content="2D View">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setViewMode('2d')}
+                className={viewMode === '2d' ? 'bg-brand-cream/30' : ''}
+              >
+                <Square size={16} className="text-brand-cream" />
+              </Button>
+            </Tooltip>
+            <Tooltip content="3D Walkthrough">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setViewMode('3d')}
+                className={viewMode === '3d' ? 'bg-brand-cream/30' : ''}
+              >
+                <Box size={16} className="text-brand-cream" />
+              </Button>
+            </Tooltip>
+          </div>
+
           <Tooltip content="Restart wizard">
             <Button variant="ghost" size="sm" onClick={resetWizard}>
               <Wand2 size={16} className="text-brand-cream" />
@@ -199,10 +228,14 @@ export const EmbedPage: React.FC = () => {
 
         {/* Canvas */}
         <div ref={containerRef} className="flex-1 relative">
-          <MainCanvas containerRef={containerRef} />
+          {viewMode === '2d' ? (
+            <MainCanvas containerRef={containerRef} />
+          ) : (
+            <Canvas3D />
+          )}
 
           {/* Help overlay */}
-          {!wizardEnabled && items.length === 0 && (
+          {!wizardEnabled && items.length === 0 && viewMode === '2d' && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg text-center max-w-sm">
                 <h3 className="text-lg font-semibold text-brand-green mb-2">

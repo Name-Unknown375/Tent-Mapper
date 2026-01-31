@@ -30,6 +30,7 @@ interface AppStore {
   // UI state
   sidebarOpen: boolean;
   activeCategory: 'all' | 'tent' | 'table' | 'chair' | 'dancefloor' | 'equipment';
+  viewMode: '2d' | '3d';
 
   // Auth state
   isAuthenticated: boolean;
@@ -100,6 +101,7 @@ interface AppStore {
   // UI actions
   toggleSidebar: () => void;
   setActiveCategory: (category: 'all' | 'tent' | 'table' | 'chair' | 'dancefloor' | 'equipment') => void;
+  setViewMode: (mode: '2d' | '3d') => void;
 
   // Auth actions
   login: (password: string) => boolean;
@@ -129,6 +131,7 @@ export const useAppStore = create<AppStore>()(
       wizardCompleted: false,
       sidebarOpen: true,
       activeCategory: 'all',
+      viewMode: '2d',
       isAuthenticated: false,
       isEmbedMode: false,
       vendorId: null,
@@ -568,6 +571,10 @@ export const useAppStore = create<AppStore>()(
 
       setActiveCategory: (category) => {
         set({ activeCategory: category });
+      },
+
+      setViewMode: (mode) => {
+        set({ viewMode: mode });
       },
 
       // Auth actions
