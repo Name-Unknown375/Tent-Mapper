@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Eye, EyeOff, Tent } from 'lucide-react';
+import { Lock, Eye, EyeOff } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore';
 import { Button, Input } from '../components/ui';
 
@@ -36,12 +36,10 @@ export const LoginPage: React.FC = () => {
       <div className="w-full max-w-md">
         {/* Logo and title */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-brand-green rounded-2xl mb-4">
-            <Tent size={40} className="text-brand-cream" />
-          </div>
+          <img src="/logo.svg" alt="Forever Party Rentals" className="h-24 mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-brand-green">Tent Mapper</h1>
           <p className="text-brand-green/70 mt-2">
-            Forever Party Rentals Event Planning Tool
+            Event Planning Tool
           </p>
         </div>
 

@@ -112,9 +112,7 @@ export const EmbedPage: React.FC = () => {
       <header className="h-14 bg-brand-green text-brand-cream flex items-center px-4 shadow-lg z-20">
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-brand-pink rounded-lg flex items-center justify-center">
-            <span className="text-brand-green font-bold text-sm">FP</span>
-          </div>
+          <img src="/logo.svg" alt="Forever Party Rentals" className="h-8 w-auto" />
           <span className="font-semibold hidden sm:block">Tent Mapper</span>
         </div>
 

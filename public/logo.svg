@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 320">
+  <!-- Infinity/lotus design -->
+  <g fill="none" stroke="#EBC0CF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Left loop of infinity -->
+    <ellipse cx="120" cy="140" rx="85" ry="55" transform="rotate(-15 120 140)"/>
+    <!-- Right loop of infinity -->
+    <ellipse cx="280" cy="140" rx="85" ry="55" transform="rotate(15 280 140)"/>
+    <!-- Center lotus petals -->
+    <path d="M200 40 Q200 90 200 120" />
+    <path d="M200 40 Q170 80 175 120" />
+    <path d="M200 40 Q230 80 225 120" />
+    <path d="M200 40 Q150 70 160 115" />
+    <path d="M200 40 Q250 70 240 115" />
+  </g>
+
+  <!-- FOREVER PARTY text -->
+  <text x="200" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="400" letter-spacing="8" fill="#284F3F">FOREVER PARTY</text>
+
+  <!-- RENTALS text -->
+  <text x="200" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="400" letter-spacing="12" fill="#284F3F">RENTALS</text>
+</svg>

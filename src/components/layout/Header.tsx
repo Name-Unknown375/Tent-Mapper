@@ -88,11 +88,9 @@ export const Header: React.FC<HeaderProps> = ({ onExportPDF, onExportImage }) =>
             </Tooltip>
           )}
 
-          {/* Logo placeholder */}
+          {/* Logo */}
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-brand-pink rounded-lg flex items-center justify-center">
-              <span className="text-brand-green font-bold text-sm">FP</span>
-            </div>
+            <img src="/logo.svg" alt="Forever Party Rentals" className="h-10 w-auto" />
             <span className="font-semibold text-lg hidden sm:block">Tent Mapper</span>
           </div>
         </div>
